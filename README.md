@@ -33,4 +33,6 @@ All notable changes to this project will be documented below.
 - Add README with changelog.
 - Improve README with a detailed explanation of how `index.html` works.
 - Plan future enhancements such as mobile optimizations, data export/import improvements, and additional quests.
+- Fix grid progress to skip days with no entry.
 - Introduce a Material 3 Expressive theme with updated colors, fonts, and button styles.
+
