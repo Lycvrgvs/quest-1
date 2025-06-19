@@ -418,7 +418,8 @@ const manuals = {
 };
 
 /* === EVIDENCE TYPES (with detailed guides) === */
-const evidences = [
+    // Parse start date in local timezone to avoid DST offsets
+    const start = new Date(state.startDate + 'T00:00');
     { icon: "🔮", es: { name: "Memoria", def: "Recuerda un hecho pasado, grande o pequeño, que demuestre que tu creencia ya ha sido cierta alguna vez. Busca en tu historia personal.", ex1: "Creencia: 'Soy valiente'. Evidencia: 'Recuerdo cuando di esa presentación frente a 50 personas, aunque estaba nervioso.'", ex2: "Creencia: 'Aprendo rápido'. Evidencia: 'La semana pasada no sabía usar esta app, y hoy la domino.'" } },
     { icon: "⚖️", es: { name: "Consecuencia", def: "Imagina que tu creencia es 100% verdad. ¿Qué consecuencias positivas y lógicas se derivan de ello? Escribe los beneficios.", ex1: "Creencia: 'Soy disciplinado con mi dieta'. Evidencia: 'Como consecuencia, tengo más energía durante el día y mi ropa me queda mejor.'", ex2: "Creencia: 'Soy un buen amigo'. Evidencia: 'Como consecuencia, la gente confía en mí y tengo relaciones fuertes y de apoyo.'" } },
     { icon: "🌡️", es: { name: "Soma I (Cuerpo)", def: "Cierra los ojos y visualízate en una situación donde tu creencia es real. ¿Qué sientes en tu cuerpo? Describe las sensaciones físicas.", ex1: "Creencia: 'Estoy en paz'. Evidencia: 'Siento mis hombros relajados, mi respiración es profunda y lenta, y noto un calor agradable en el pecho.'", ex2: "Creencia: 'Soy fuerte'. Evidencia: 'Visualizo levantando peso y siento mis músculos firmes, mi postura erguida y mis pies bien plantados en el suelo.'" } },

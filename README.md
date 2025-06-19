@@ -35,4 +35,5 @@ All notable changes to this project will be documented below.
 - Plan future enhancements such as mobile optimizations, data export/import improvements, and additional quests.
 - Fix grid progress to skip days with no entry.
 - Resolve bug where completing a day after skipping filled the wrong square.
+- Fix rest day showing one day late due to timezone parsing.
 - Introduce a Material 3 Expressive theme with updated colors, fonts, and button styles.
