@@ -443,26 +443,28 @@ function render() {
 function buildGrid() {
     const g = el("div", "grid");
     const total = state.quest === 1 ? 21 : 60;
-    let progress = 0;
+    const start = new Date(state.startDate);
+    const today = todayStr();
+
     for (let i = 0; i < total; i++) {
-        const wday = (state.startWeekday + i) % 7;
-        const cheat = wday === state.cheatDay;
+        const dayDate = new Date(start.getTime() + i * oneDay);
+        const dayStr = dayDate.toISOString().slice(0, 10);
+        const cheat = dayDate.getDay() === state.cheatDay;
         const b = el("div", "box" + (cheat ? " cheat" : ""));
-        
+
         const content = cheat ? '🍇' : i + 1;
         b.appendChild(el("span", "", content));
-        
+
         if (!cheat) {
-            if (progress < state.entries.length) {
+            if (state.entries.some(e => e.date === dayStr)) {
                 b.classList.add("filled");
                 const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
                 svg.setAttribute("class", "fill-svg");
                 svg.innerHTML = `<rect class="filler" width="100%" height="100%"/>`;
                 b.prepend(svg);
-            } else if (progress === state.entries.length && !isDone()) {
+            } else if (dayStr === today && !isDone()) {
                 b.classList.add("today");
             }
-            progress++;
         }
         g.appendChild(b);
     }
