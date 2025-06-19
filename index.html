@@ -313,7 +313,7 @@
 
 <script>
 /* === CONFIGURATION === */
-const DEBUG = false;
+const DEBUG = true;
 const MANUAL_AUTO_CLOSE = 10000;
 
 /* === STATE (persistent) === */
@@ -424,7 +424,7 @@ const evidences = [
     { icon: "🌡️", es: { name: "Soma I (Cuerpo)", def: "Cierra los ojos y visualízate en una situación donde tu creencia es real. ¿Qué sientes en tu cuerpo? Describe las sensaciones físicas.", ex1: "Creencia: 'Estoy en paz'. Evidencia: 'Siento mis hombros relajados, mi respiración es profunda y lenta, y noto un calor agradable en el pecho.'", ex2: "Creencia: 'Soy fuerte'. Evidencia: 'Visualizo levantando peso y siento mis músculos firmes, mi postura erguida y mis pies bien plantados en el suelo.'" } },
     { icon: "🧠", es: { name: "Soma II (Mente)", def: "En esa misma visualización, ¿qué pensamientos, emociones y lenguaje usas? ¿En qué se centra tu atención?", ex1: "Creencia: 'Soy creativo'. Evidencia: 'Pienso en posibilidades, no en problemas. Siento curiosidad y emoción. Mi atención está en conectar ideas.'", ex2: "Creencia: 'Soy enfocado'. Evidencia: 'Mi diálogo interno es 'un paso a la vez'. Siento calma y control. Mi atención está 100% en la tarea, el ruido externo desaparece.'" } },
     { icon: "🗺️", es: { name: "Profecía", def: "Haz una predicción de una acción muy pequeña y 100% realizable que puedas hacer AHORA MISMO para probar tu creencia. Luego, hazla.", ex1: "Creencia: 'Soy proactivo'. Evidencia: 'Profecía: Voy a levantarme y llenar mi botella de agua. Hecho.'", ex2: "Creencia: 'Soy ordenado'. Evidencia: 'Profecía: Voy a tomar el plato sucio de mi escritorio y llevarlo a la cocina. Hecho.'" } },
-    { icon: "Δ", es: { name: "Lógica", def: "Construye un argumento simple (silogismo). Escribe 3 razones (premisas) que, unidas, llevan inevitablemente a tu creencia como conclusión.", ex1: "Creencia: 'Es verdad que estoy mejorando mi condición física'. Evidencia: '1. Cada semana corro un poco más lejos. 2. Levantar más peso se siente más fácil. 3. Mi energía ha aumentado. Conclusión: Por lo tanto, estoy mejorando mi condición física.'", ex2: "" } }
+    { icon: "Δ", es: { name: "Lógica", def: "Construye un argumento simple (silogismo). Escribe 3 razones (premisas) que, unidas, llevan inevitablemente a tu creencia como conclusión.", ex1: "Creencia: 'Es verdad que estoy mejorando mi condición física'. Evidencia: '1. Cada semana corro un poco más lejos. 2. Levantar más peso se siente más fácil. 3. Mi energía ha aumentado. Conclusión: Por lo tanto, estoy mejorando mi condición física.'", ex2: "..." } }
 ];
 
 /* === RENDER LOGIC === */
@@ -445,7 +445,8 @@ function render() {
     if (DEBUG) app.appendChild(debugBar());
 
     const td = todayDate();
-    app.appendChild(el("div", "todayLabel", `${weekdayEs(td.getDay())}`));
+    const label = weekdayEs(td.getDay());
+    app.appendChild(el("div", "todayLabel", label));
 
     if (isCheat(td)) {
         app.appendChild(el("div", "banner", t('cheat_banner')));
@@ -484,27 +485,28 @@ function indexForToday() {
 function buildGrid() {
     const g = el("div", "grid");
     const total = state.quest === 1 ? 21 : 60;
-    const todayIdx = indexForToday();
-    let idx = 0;
+    // Parse start date in local timezone to avoid DST offsets
+    const start = new Date(state.startDate + 'T00:00');
+    const today = todayStr();
     for (let i = 0; i < total; i++) {
-        const wday = (state.startWeekday + i) % 7;
-        const cheat = wday === state.cheatDay;
+        const dayDate = new Date(start.getTime() + i * oneDay);
+        const dayStr = dayDate.toISOString().slice(0, 10);
+        const cheat = dayDate.getDay() === state.cheatDay;
         const b = el("div", "box" + (cheat ? " cheat" : ""));
 
         const content = cheat ? '🍇' : i + 1;
         b.appendChild(el("span", "", content));
 
         if (!cheat) {
-            if (idx < state.entries.length) {
+            if (state.entries.some(e => e.date === dayStr)) {
                 b.classList.add("filled");
                 const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
                 svg.setAttribute("class", "fill-svg");
                 svg.innerHTML = `<rect class="filler" width="100%" height="100%"/>`;
                 b.prepend(svg);
-            } else if (idx === todayIdx && !isDone()) {
+            } else if (dayStr === today && !isDone()) {
                 b.classList.add("today");
             }
-            idx++;
         }
         g.appendChild(b);
     }
@@ -636,7 +638,10 @@ function modal(html) {
     m.innerHTML = `<div class="dialog">${html}</div>`;
     document.body.appendChild(m);
 }
-function closeModal() { $("#modal")?.remove(); }
+function closeModal() {
+    const modalEl = $("#modal");
+    if (modalEl) modalEl.remove();
+}
 
 function openHelp(i) {
     const ev = evidences[i].es;
@@ -743,7 +748,7 @@ function importData() {
                     save();
                     render();
                 } else { alert("Archivo de datos inválido."); }
-            } catch { alert("No se pudo leer el archivo."); }
+            } catch (err) { alert("No se pudo leer el archivo."); }
         };
         r.readAsText(f);
     };
