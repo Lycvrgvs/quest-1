@@ -446,7 +446,8 @@ function render() {
     if (DEBUG) app.appendChild(debugBar());
 
     const td = todayDate();
-    app.appendChild(el("div", "todayLabel", `${weekdayEs(td.getDay())}`));
+    const label = weekdayEs(td.getDay());
+    app.appendChild(el("div", "todayLabel", label));
 
     if (isCheat(td)) {
         app.appendChild(el("div", "banner", t('cheat_banner')));
@@ -485,7 +486,8 @@ function indexForToday() {
 function buildGrid() {
     const g = el("div", "grid");
     const total = state.quest === 1 ? 21 : 60;
-    const start = new Date(state.startDate);
+    // Parse start date in local timezone to avoid DST offsets
+    const start = new Date(state.startDate + 'T00:00');
     const today = todayStr();
     for (let i = 0; i < total; i++) {
         const dayDate = new Date(start.getTime() + i * oneDay);
@@ -637,7 +639,10 @@ function modal(html) {
     m.innerHTML = `<div class="dialog">${html}</div>`;
     document.body.appendChild(m);
 }
-function closeModal() { $("#modal")?.remove(); }
+function closeModal() {
+    const modalEl = $("#modal");
+    if (modalEl) modalEl.remove();
+}
 
 function openHelp(i) {
     const ev = evidences[i].es;
@@ -744,7 +749,7 @@ function importData() {
                     save();
                     render();
                 } else { alert("Archivo de datos inválido."); }
-            } catch { alert("No se pudo leer el archivo."); }
+            } catch (err) { alert("No se pudo leer el archivo."); }
         };
         r.readAsText(f);
     };
