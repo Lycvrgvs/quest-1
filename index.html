@@ -440,29 +440,46 @@ function render() {
 }
 
 /* === UI COMPONENTS === */
+function nonCheatDaysUntil(date) {
+    const start = new Date(state.startDate);
+    let count = 0;
+    if (date < start) return 0;
+    for (let d = new Date(start); d <= date; d = new Date(d.getTime() + oneDay)) {
+        if (d.getDay() !== state.cheatDay) count++;
+    }
+    return count;
+}
+
+function indexForToday() {
+    const td = todayDate();
+    if (isCheat(td)) return -1;
+    return nonCheatDaysUntil(td) - 1;
+}
+
 function buildGrid() {
     const g = el("div", "grid");
     const total = state.quest === 1 ? 21 : 60;
-    let progress = 0;
+    const todayIdx = indexForToday();
+    let idx = 0;
     for (let i = 0; i < total; i++) {
         const wday = (state.startWeekday + i) % 7;
         const cheat = wday === state.cheatDay;
         const b = el("div", "box" + (cheat ? " cheat" : ""));
-        
+
         const content = cheat ? '🍇' : i + 1;
         b.appendChild(el("span", "", content));
-        
+
         if (!cheat) {
-            if (progress < state.entries.length) {
+            if (idx < state.entries.length) {
                 b.classList.add("filled");
                 const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
                 svg.setAttribute("class", "fill-svg");
                 svg.innerHTML = `<rect class="filler" width="100%" height="100%"/>`;
                 b.prepend(svg);
-            } else if (progress === state.entries.length && !isDone()) {
+            } else if (idx === todayIdx && !isDone()) {
                 b.classList.add("today");
             }
-            progress++;
+            idx++;
         }
         g.appendChild(b);
     }
