@@ -33,3 +33,6 @@ All notable changes to this project will be documented below.
 - Add README with changelog.
 - Improve README with a detailed explanation of how `index.html` works.
 - Plan future enhancements such as mobile optimizations, data export/import improvements, and additional quests.
+- Fix grid progress to skip days with no entry.
+- Resolve bug where completing a day after skipping filled the wrong square.
+- Fix rest day showing one day late due to timezone parsing.
