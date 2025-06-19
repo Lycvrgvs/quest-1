@@ -29,7 +29,7 @@ All notable changes to this project will be documented below.
 ### [0.1.0] - 2025-06-19
 - Initial commit with `index.html` implementing the habit tracking app.
 
-### [Unreleased]
+### [0.2.0] - 2025-06-20
 - Add README with changelog.
 - Improve README with a detailed explanation of how `index.html` works.
 - Plan future enhancements such as mobile optimizations, data export/import improvements, and additional quests.
@@ -37,3 +37,5 @@ All notable changes to this project will be documented below.
 - Resolve bug where completing a day after skipping filled the wrong square.
 - Fix rest day showing one day late due to timezone parsing.
 - Introduce a Material 3 Expressive theme with updated colors, fonts, and button styles.
+
+### [Unreleased]
