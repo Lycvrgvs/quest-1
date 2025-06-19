@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Quest - Habits & Beliefs</title>
+
+    <!-- FONTS & ICONS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js" defer></script>
+
+    <style>
+        :root {
+            --bg: #1a1c20;
+            --surface: #25282e;
+            --fg: #e0e2e8;
+            --fg-muted: #8c919f;
+            --fg-subtle: #5c616c;
+            --accent: #d4af37;
+            --accent-light: #e6c86e;
+            --danger: #e57373;
+            --cheat: #4a4e59;
+            --parchment-bg: #fdf6e3;
+            --parchment-fg: #5d4037;
+            --parchment-border: #d8c8a8;
+            --round: 8px;
+            --font-body: 'Inter', system-ui, -apple-system, Segoe UI, Roboto;
+            --font-heading: 'EB Garamond', serif;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            overscroll-behavior: none;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            background: var(--bg);
+            font-family: var(--font-body);
+            color: var(--fg);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #app {
+            width: 100%;
+            max-width: 460px;
+            padding: 20px 16px 60px;
+            box-sizing: border-box;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: var(--font-heading);
+            margin: 0 0 .6em;
+            font-weight: 700;
+            color: var(--accent-light);
+        }
+        h3 { font-size: 1.5rem; }
+
+        /* FORM ELEMENTS */
+        label {
+            display: block;
+            margin-bottom: .5em;
+            margin-top: 1em;
+            font-weight: 500;
+            color: var(--fg-muted);
+            font-size: 0.9rem;
+        }
+        select, input, textarea {
+            font-size: 1rem;
+            padding: .8em;
+            border-radius: var(--round);
+            border: 1px solid var(--fg-subtle);
+            width: 100%;
+            box-sizing: border-box;
+            background: var(--surface);
+            color: var(--fg);
+            font-family: var(--font-body);
+        }
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        input::placeholder, textarea::placeholder {
+            color: var(--fg-subtle);
+            font-style: italic;
+        }
+        textarea:focus, input:focus {
+            outline: 2px solid var(--accent);
+            border-color: var(--accent);
+            color: var(--fg);
+        }
+
+        /* BUTTONS */
+        button {
+            cursor: pointer;
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            font-size: 1rem;
+            padding: .8em;
+            border-radius: var(--round);
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        button:hover { background: var(--accent-light); }
+        button.secondary {
+            background: var(--surface);
+            color: var(--fg-muted);
+            border: 1px solid var(--fg-subtle);
+        }
+        button.secondary:hover { background: #3a3d44; color: var(--fg); }
+        button.icon-btn {
+            background: transparent;
+            border: none;
+            padding: 6px;
+            color: var(--fg-muted);
+            width: auto;
+            line-height: 0;
+        }
+        button.icon-btn:hover { color: var(--accent-light); }
+        button.icon-btn i { font-size: 1.5rem; }
+
+        /* GRID OF SQUARES */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin: 24px 0;
+        }
+        .box {
+            position: relative;
+            padding-top: 100%;
+            border: 2px solid var(--fg-subtle);
+            border-radius: 4px;
+            user-select: none;
+            transition: transform 0.1s, box-shadow 0.2s;
+        }
+        .box:hover {
+            transform: scale(1.05);
+        }
+        .box span {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--fg-muted);
+        }
+        .today {
+            border-color: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+        }
+        .cheat {
+            background: var(--cheat);
+            border-style: dashed;
+            border-color: var(--fg-subtle);
+        }
+        .cheat span { font-size: 1.5rem; }
+        
+        .box .fill-svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .box .filler {
+            width: 100%;
+            height: 100%;
+            fill: var(--accent-light);
+            transform: scale(0);
+            transform-origin: bottom left;
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .box.filled {
+            border-color: var(--accent);
+        }
+        .box.filled .filler {
+            transform: scale(1.5);
+        }
+        .box.filled span {
+            color: var(--bg);
+            z-index: 1;
+        }
+
+        /* BANNERS & LABELS */
+        .banner {
+            background: var(--accent);
+            color: var(--bg);
+            padding: .8em;
+            border-radius: var(--round);
+            text-align: center;
+            margin-bottom: 1.2em;
+            font-weight: 600;
+        }
+        .todayLabel {
+            font-size: .9em;
+            color: var(--fg-muted);
+            margin-top: 4px;
+            text-align: center;
+            font-family: var(--font-heading);
+            letter-spacing: 0.5px;
+        }
+
+        /* MODALS (Parchment Scrolls) */
+        #modal, #splash {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .7);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99;
+            padding: 1rem;
+        }
+        .dialog {
+            background: var(--parchment-bg);
+            color: var(--parchment-fg);
+            border-radius: 4px;
+            padding: 24px;
+            max-width: 90%;
+            width: 420px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--parchment-border);
+            box-shadow: 5px 5px 20px rgba(0,0,0,0.4);
+            /* FIX: Removed the tilt effect */
+        }
+        .dialog h3, .dialog h4 { color: var(--parchment-fg); }
+        .dialog ul { padding-left: 20px; }
+        .dialog li { margin-bottom: 0.5em; }
+        .dialog button { margin-top: 1em; }
+        .dialog .countdown {
+            font-size: .85em;
+            color: #a1887f;
+            float: right;
+            margin-top: 1.5em;
+        }
+        .dialog .example-text {
+            color: var(--fg-subtle);
+            font-style: italic;
+            display: block;
+            margin-top: 4px;
+        }
+
+        /* LAYOUT & UTILITY */
+        .topbar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1em;
+            gap: 8px;
+        }
+        .debugbar {
+            background: #ffc10720;
+            padding: 6px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+        .debugbar button { font-size: 0.8rem; padding: 4px 8px; width: auto; }
+        .flex-gap { display: flex; gap: 10px; }
+        .evidence-header { display: flex; justify-content: space-between; align-items: center; }
+        .evidence-header button { width: auto; padding: .4em .8em; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+    <div id="splash" style="display: none;">
+        <div class="dialog">
+            <h3>Una nueva misión te espera...</h3>
+            <p>Todo gran viaje empieza con un solo paso. Todo mito, con una sola hazaña. Este es tu diario para forjar una nueva identidad, un cuadro a la vez.</p>
+            <button id="unrollScrollBtn">Desenrollar el Pergamino</button>
+        </div>
+    </div>
+    
+    <div id="app"></div>
+
+<script>
+/* === CONFIGURATION === */
+const DEBUG = false;
+const MANUAL_AUTO_CLOSE = 10000;
+
+/* === STATE (persistent) === */
+let state = JSON.parse(localStorage.getItem("questApp")) || {
+    setup: false,
+    entries: [],
+    quest: 1,
+    lang: "es", // Default to Spanish
+    introSeen: false
+};
+function save() { localStorage.setItem("questApp", JSON.stringify(state)); }
+
+/* === HELPERS === */
+let debugOffset = 0;
+const oneDay = 864e5;
+const todayDate = () => new Date(Date.now() + debugOffset * oneDay);
+const todayStr = () => todayDate().toISOString().slice(0, 10);
+const weekday = i => ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][i];
+const weekdayEs = i => ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][i];
+const $ = s => document.querySelector(s);
+const el = (tag, cls, html) => { const d = document.createElement(tag); if (cls) d.className = cls; if (html !== undefined) d.innerHTML = html; return d; };
+
+/* === I18N (Copywriting in Spanish) === */
+const dict = {
+    es: {
+        setup_title: "Forja tu Misión",
+        choose_lang: "Elige tu idioma",
+        english: "Inglés",
+        spanish: "Español",
+        pick_cheat: "Elige tu Día de Festín (descanso)",
+        habit_name: "Nombra un hábito específico (acción, hora, lugar)",
+        belief_hint: "p.ej., Es verdad que soy un escritor enfocado.",
+        start: "Comenzar Misión",
+        manual: "Oráculo",
+        cheat_banner: "¡Hoy es tu Día de Festín! ¡Recarga! 🍇",
+        daily_title: "Registro del Día",
+        habitLbl: "Hábito",
+        belief: "Creencia (Escríbela a diario para interiorizarla)",
+        evidence: "Evidencia",
+        evidence_examples: "Guía",
+        reward: "Recompensa 🎁 (opcional)",
+        confirm: "Forjar Cuadro",
+        done_msg: "¡Bien forjado! El camino te espera mañana.",
+        import: "Importar",
+        export: "Exportar",
+        reset: "Nueva Misión",
+        close: "Cerrar Pergamino",
+        quest2_prompt: "¡Primera Prueba completa! ¿Empezar el siguiente capítulo?",
+        keep: "Continuar Senda",
+        newr: "Forjar Nueva Senda",
+        duration: "min",
+        autoClose: "Se cierra en",
+        modify_quest: "Modificar Misión",
+        save_changes: "Guardar Cambios",
+        switch_to_q2: "Cambiar a Misión 2"
+    },
+    en: { /* Kept for future implementation */ }
+};
+let t = k => dict.es[k] || k; // Always use Spanish for now
+
+/* === MANUALS (Oracle Scrolls) === */
+const manuals = {
+    setup: {
+        es: `<h3>El Primer Paso</h3>
+             <p>La misión de un héroe se construye sobre acciones poderosas y consistentes. Define las tuyas.</p>
+             <h4>1. Forja tu Hábito</h4>
+             <p>Sé preciso. No "hacer ejercicio", sino "hacer 15 flexiones en la sala a las 8 AM". <b>Una hora y un lugar específicos son tus anclas.</b></p>
+             <h4>2. Forja tu Creencia</h4>
+             <p>Esta es la verdad que estás forjando. Debe ser <b>positiva, específica y en tiempo presente.</b> Escribirla a diario te ayuda a memorizarla e integrarla.</p>
+             <span class="example-text">Ej: "Es verdad que aprendo idiomas con facilidad."</span>
+             <span class="example-text">Ej: "Es verdad que mantengo la calma bajo presión."</span>
+             <h4>3. Elige tu Día de Festín</h4>
+             <p>Incluso los héroes deben descansar. Es un día libre de culpa para recargar. El dios Dionisio lo aprueba.</p>`
+    },
+    quest1: {
+        es: `<h3>Misión 1: La Prueba de Resistencia</h3>
+             <h4>Pánico I: Forjando el Hábito (3 Semanas)</h4>
+             <p>Esta prueba construye tus cimientos a través del esfuerzo gradual.</p>
+             <ul>
+                <li><b>Semana 1:</b> 5 minutos de tu hábito.</li>
+                <li><b>Semana 2:</b> 10 minutos.</li>
+                <li><b>Semana 3:</b> 21 minutos.</li>
+             </ul>
+             <p>Un día fijo a la semana es tu <b>Día de Festín</b> (un cuadro gris 🍇) para descansar.</p>
+             <h4>Odisea I: La Guía del Oráculo</h4>
+             <p>Simultáneamente, fortalecerás una creencia central durante estas 3 semanas. Escríbela todos los días. Cada día, recolectarás un tipo de evidencia diferente para demostrar que esta creencia es verdadera.</p>`
+    },
+    quest2: {
+        es: `<h3>Misión 2: El Salto Cuántico</h3>
+             <h4>Pánico II: Forjando una Rutina (2 Meses)</h4>
+             <p>Ahora construirás una rutina completa alrededor de tu Dreamline.</p>
+             <ul>
+                <li><b>Semanas 1-2:</b> Añade un nuevo hábito (2 en total).</li>
+                <li><b>Semanas 3-4:</b> Añade otro (3 en total).</li>
+                <li><b>Semanas 5-8:</b> Añade un hábito final, consolidando una rutina de 4 hábitos.</li>
+             </ul>
+             <p><b>La Curva de Aprendizaje:</b> Espera este camino: <b>Energía</b> (primer 10%) → <b>Duda</b> (siguiente 15%) → <b>Meseta</b> (50% central) → <b>Salto Cuántico</b> (25% final). Confía en el proceso durante la meseta.</p>
+             <h4>Odisea II: Forjando la Identidad</h4>
+             <p>Tu creencia evoluciona. Cambia de "Es verdad que yo..." a "Es verdad que soy una persona que...". Ahora estás definiendo una identidad.</p>
+             <p>Cada semana, expande esta creencia. Conviértela en una narrativa más rica sobre el héroe en el que te estás convirtiendo. Las 6 evidencias siguen siendo tus herramientas. Revisa tu Dreamline y Fear-Setting semanalmente para mantener la motivación.</p>`
+    }
+};
+
+/* === EVIDENCE TYPES (with detailed guides) === */
+const evidences = [
+    { icon: "🔮", es: { name: "Memoria", def: "Recuerda un hecho pasado, grande o pequeño, que demuestre que tu creencia ya ha sido cierta alguna vez. Busca en tu historia personal.", ex1: "Creencia: 'Soy valiente'. Evidencia: 'Recuerdo cuando di esa presentación frente a 50 personas, aunque estaba nervioso.'", ex2: "Creencia: 'Aprendo rápido'. Evidencia: 'La semana pasada no sabía usar esta app, y hoy la domino.'" } },
+    { icon: "⚖️", es: { name: "Consecuencia", def: "Imagina que tu creencia es 100% verdad. ¿Qué consecuencias positivas y lógicas se derivan de ello? Escribe los beneficios.", ex1: "Creencia: 'Soy disciplinado con mi dieta'. Evidencia: 'Como consecuencia, tengo más energía durante el día y mi ropa me queda mejor.'", ex2: "Creencia: 'Soy un buen amigo'. Evidencia: 'Como consecuencia, la gente confía en mí y tengo relaciones fuertes y de apoyo.'" } },
+    { icon: "🌡️", es: { name: "Soma I (Cuerpo)", def: "Cierra los ojos y visualízate en una situación donde tu creencia es real. ¿Qué sientes en tu cuerpo? Describe las sensaciones físicas.", ex1: "Creencia: 'Estoy en paz'. Evidencia: 'Siento mis hombros relajados, mi respiración es profunda y lenta, y noto un calor agradable en el pecho.'", ex2: "Creencia: 'Soy fuerte'. Evidencia: 'Visualizo levantando peso y siento mis músculos firmes, mi postura erguida y mis pies bien plantados en el suelo.'" } },
+    { icon: "🧠", es: { name: "Soma II (Mente)", def: "En esa misma visualización, ¿qué pensamientos, emociones y lenguaje usas? ¿En qué se centra tu atención?", ex1: "Creencia: 'Soy creativo'. Evidencia: 'Pienso en posibilidades, no en problemas. Siento curiosidad y emoción. Mi atención está en conectar ideas.'", ex2: "Creencia: 'Soy enfocado'. Evidencia: 'Mi diálogo interno es 'un paso a la vez'. Siento calma y control. Mi atención está 100% en la tarea, el ruido externo desaparece.'" } },
+    { icon: "🗺️", es: { name: "Profecía", def: "Haz una predicción de una acción muy pequeña y 100% realizable que puedas hacer AHORA MISMO para probar tu creencia. Luego, hazla.", ex1: "Creencia: 'Soy proactivo'. Evidencia: 'Profecía: Voy a levantarme y llenar mi botella de agua. Hecho.'", ex2: "Creencia: 'Soy ordenado'. Evidencia: 'Profecía: Voy a tomar el plato sucio de mi escritorio y llevarlo a la cocina. Hecho.'" } },
+    { icon: "Δ", es: { name: "Lógica", def: "Construye un argumento simple (silogismo). Escribe 3 razones (premisas) que, unidas, llevan inevitablemente a tu creencia como conclusión.", ex1: "Creencia: 'Es verdad que estoy mejorando mi condición física'. Evidencia: '1. Cada semana corro un poco más lejos. 2. Levantar más peso se siente más fácil. 3. Mi energía ha aumentado. Conclusión: Por lo tanto, estoy mejorando mi condición física.'", ex2: "" } }
+];
+
+/* === RENDER LOGIC === */
+function render() {
+    const app = $("#app");
+    app.innerHTML = "";
+
+    if (!state.introSeen) {
+        showSplashScreen();
+        return;
+    }
+    if (!state.setup) {
+        renderSetup(app);
+        return;
+    }
+
+    app.appendChild(topBar());
+    if (DEBUG) app.appendChild(debugBar());
+
+    const td = todayDate();
+    app.appendChild(el("div", "todayLabel", `${weekdayEs(td.getDay())}`));
+
+    if (isCheat(td)) {
+        app.appendChild(el("div", "banner", t('cheat_banner')));
+    }
+
+    app.appendChild(buildGrid());
+
+    if (isCheat(td) || isDone()) {
+        app.appendChild(el("p", "", t('done_msg')));
+    } else {
+        renderDaily(app);
+    }
+    
+    if (state.quest === 1 && state.entries.length === 21) {
+        quest2Prompt();
+    }
+}
+
+/* === UI COMPONENTS === */
+function buildGrid() {
+    const g = el("div", "grid");
+    const total = state.quest === 1 ? 21 : 60;
+    let progress = 0;
+    for (let i = 0; i < total; i++) {
+        const wday = (state.startWeekday + i) % 7;
+        const cheat = wday === state.cheatDay;
+        const b = el("div", "box" + (cheat ? " cheat" : ""));
+        
+        const content = cheat ? '🍇' : i + 1;
+        b.appendChild(el("span", "", content));
+        
+        if (!cheat) {
+            if (progress < state.entries.length) {
+                b.classList.add("filled");
+                const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                svg.setAttribute("class", "fill-svg");
+                svg.innerHTML = `<rect class="filler" width="100%" height="100%"/>`;
+                b.prepend(svg);
+            } else if (progress === state.entries.length && !isDone()) {
+                b.classList.add("today");
+            }
+            progress++;
+        }
+        g.appendChild(b);
+    }
+    return g;
+}
+
+function topBar() {
+    const bar = el("div", "topbar");
+    bar.innerHTML = `<button class="icon-btn" onclick="setLang('en')" title="${t('choose_lang')}">
+        <i class="ph-bold ph-translate"></i>
+    </button>
+    <div>
+        <button class="icon-btn" onclick="openModifyQuestModal()" title="${t('modify_quest')}"><i class="ph-bold ph-gear-six"></i></button>
+        <button class="icon-btn" onclick="exportData()" title="${t('export')}"><i class="ph-bold ph-download-simple"></i></button>
+        <button class="icon-btn" onclick="importData()" title="${t('import')}"><i class="ph-bold ph-upload-simple"></i></button>
+        <button class="icon-btn" onclick="openQuestManual()" title="${t('manual')}"><i class="ph-bold ph-scroll"></i></button>
+        <button class="icon-btn" onclick="resetApp()" title="${t('reset')}"><i class="ph-bold ph-fire"></i></button>
+    </div>`;
+    return bar;
+}
+
+function debugBar() {
+    return el("div", "debugbar",
+        `DEBUG • offset=${debugOffset}d 
+     <button onclick="shiftDay(-1)">-1d</button>
+     <button onclick="shiftDay(1)">+1d</button>
+     <button onclick="forceQuest(2)">Q2</button>`);
+}
+
+function renderSetup(root) {
+    root.appendChild(el("h2", "", t('setup_title')));
+    const form = el("div");
+    form.innerHTML = `<label>${t('choose_lang')}</label>
+     <div class="flex-gap">
+      <button class="secondary" style="flex:1" onclick="setLang('en')">${dict.es.english}</button>
+      <button class="secondary" style="flex:1" onclick="setLang('es')">${dict.es.spanish}</button></div>
+     <label>${t('pick_cheat')}</label>
+     <select id="cheatSel">${Array.from({length:7},(_,i)=>`<option value="${i}">
+     ${weekdayEs(i)}</option>`).join("")}</select>
+     <label>${t('habit_name')}</label>
+     <input id="habitInput" placeholder="p.ej., Meditar 5 mins a las 7am en la sala">
+     <label>${t('belief')}</label><input id="beliefInput" placeholder="${t('belief_hint')}">
+     <div class="flex-gap" style="margin-top:1.3em">
+      <button style="flex:1" onclick="finishSetup()">${t('start')}</button>
+      <button class="secondary" style="flex:1" onclick="openSetupManual(false)">${t('manual')}</button></div>`;
+    root.appendChild(form);
+}
+
+function renderDaily(root) {
+    const done = state.entries.length;
+    const week = Math.floor(done / 7);
+    const quest1Durations = [5, 10, 21];
+    const dur = state.quest === 1 && week < quest1Durations.length ? quest1Durations[week] : null;
+    const evIdx = done % 6, ev = evidences[evIdx];
+
+    root.appendChild(el("h3", "", t('daily_title')));
+    root.appendChild(el("p", "", `<strong>${t('habitLbl')}:</strong> ${state.habit}${dur ? ` — ${dur} ${t('duration')}` : ''}`));
+    
+    const dailyForm = el("div");
+    dailyForm.innerHTML = `<label>${t('belief')}</label>
+     <textarea id="beliefT" rows="2" placeholder="${state.beliefTemplate || t('belief_hint')}"></textarea>
+     <div class="evidence-header">
+        <label style="margin:0;">${t('evidence')} ${ev.icon}</label>
+        <button class="secondary" onclick="openHelp(${evIdx})">${t('evidence_examples')}</button>
+     </div>
+     <textarea id="evidenceT" rows="3" placeholder="${ev.es.name}: ${ev.es.def}"></textarea>
+     <label>${t('reward')}</label><input id="rewardT" placeholder="p.ej., Escuchar una canción favorita">
+     <button style="margin-top:1.5em; width:100%;" onclick="completeDay()">${t('confirm')}</button>`;
+    root.appendChild(dailyForm);
+}
+
+/* === ACTIONS & EVENT HANDLERS === */
+function showSplashScreen() {
+    const splash = $('#splash');
+    splash.style.display = 'flex';
+    $('#unrollScrollBtn').onclick = () => {
+        splash.style.display = 'none';
+        state.introSeen = true;
+        save();
+        openSetupManual(false);
+        render();
+    };
+}
+
+function finishSetup() {
+    state.setup = true;
+    state.cheatDay = parseInt($("#cheatSel").value);
+    state.habit = $("#habitInput").value || "Hábito por defecto";
+    state.beliefTemplate = $("#beliefInput").value || "";
+    state.startDate = todayStr();
+    state.startWeekday = todayDate().getDay();
+    save();
+    render();
+    openQuestManual(false); // FIX: Quest 1 manual now has a close button
+}
+
+function completeDay() {
+    const beliefText = $("#beliefT").value;
+    const entry = {
+        date: todayStr(),
+        belief: beliefText,
+        evidence: $("#evidenceT").value,
+        reward: $("#rewardT").value
+    };
+    state.entries.push(entry);
+    if (beliefText) {
+        state.beliefTemplate = beliefText; // Persist belief only if it's not empty
+    }
+    save();
+    if (window.confetti) {
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    }
+    render();
+}
+
+function setLang(l) {
+    alert("El cambio de idioma se habilitará en futuras versiones.");
+    // state.lang = l; save(); render();
+}
+
+function isCheat(date) { return date.getDay() === state.cheatDay; }
+function isDone() { return state.entries.some(e => e.date === todayStr()); }
+
+/* === MODALS (Dialogs) === */
+function modal(html) {
+    const m = el("div");
+    m.id = "modal";
+    m.onclick = (e) => { if (e.target.id === 'modal') closeModal(); };
+    m.innerHTML = `<div class="dialog">${html}</div>`;
+    document.body.appendChild(m);
+}
+function closeModal() { $("#modal")?.remove(); }
+
+function openHelp(i) {
+    const ev = evidences[i].es;
+    modal(`<h3>${evidences[i].icon} ${ev.name}</h3>
+           <p>${ev.def}</p>
+           <h4>Ejemplos:</h4>
+           <p>${ev.ex1}</p>
+           ${ev.ex2 ? `<p>${ev.ex2}</p>` : ''}
+           <button onclick="closeModal()">${t('close')}</button>`);
+}
+
+function openSetupManual(auto) { showManual(manuals.setup.es, auto); }
+function openQuestManual(auto = false) {
+    const content = state.quest === 1 ? manuals.quest1.es : manuals.quest2.es;
+    showManual(content, auto);
+}
+
+function showManual(content, auto) {
+    modal(content + `<span class="countdown" id="cd"></span>` + (auto ? "" : `<br><button onclick="closeModal()">${t('close')}</button>`));
+    if (auto) { /* Auto-close logic remains if needed */ }
+}
+
+function quest2Prompt() {
+    modal(`<h3>${t('quest2_prompt')}</h3>
+           <div class="flex-gap">
+             <button style="flex:1" onclick="startQ2(true)">${t('keep')}</button>
+             <button class="secondary" style="flex:1" onclick="startQ2(false)">${t('newr')}</button>
+           </div>`);
+}
+function startQ2(keep) {
+    state.quest = 2;
+    if (!keep) {
+        state.habit = "Nueva Rutina";
+        state.beliefTemplate = "";
+    }
+    state.entries = [];
+    state.startDate = todayStr();
+    state.startWeekday = todayDate().getDay();
+    save();
+    closeModal();
+    render();
+    openQuestManual(false);
+}
+
+/* === NEW: Modify Quest Feature === */
+function openModifyQuestModal() {
+    // For Quest 2, the "habit" is the name of the routine. A multi-habit system is a future enhancement.
+    const habitLabel = state.quest === 1 ? t('habitLbl') : 'Nombre de la Rutina';
+    
+    let quest2Button = '';
+    if (state.quest === 1) {
+        quest2Button = `<button class="secondary" onclick="switchToQuest2()">${t('switch_to_q2')}</button>`;
+    }
+
+    modal(`<h3>${t('modify_quest')} ${state.quest}</h3>
+           <label for="modHabit">${habitLabel}</label>
+           <input id="modHabit" value="${state.habit || ''}">
+           <label for="modBelief">${t('belief')}</label>
+           <input id="modBelief" value="${state.beliefTemplate || ''}">
+           <div class="flex-gap" style="margin-top:1.5em;">
+             <button style="flex:1;" onclick="saveModifiedQuest()">${t('save_changes')}</button>
+             ${quest2Button}
+           </div>
+           <button class="secondary" style="width:100%;" onclick="closeModal()">${t('close')}</button>`);
+}
+
+function saveModifiedQuest() {
+    state.habit = $('#modHabit').value;
+    state.beliefTemplate = $('#modBelief').value;
+    save();
+    closeModal();
+    render();
+}
+
+function switchToQuest2() {
+    if (confirm("¿Estás seguro de que quieres pasar a la Misión 2? Tu progreso de la Misión 1 se reiniciará.")) {
+        startQ2(false); // Start Q2 with new routines
+    }
+}
+
+/* === DATA & DEBUG === */
+function exportData() {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "misionData.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+
+function importData() {
+    const inp = document.createElement("input");
+    inp.type = "file";
+    inp.accept = "application/json";
+    inp.onchange = e => {
+        const f = e.target.files[0];
+        if (!f) return;
+        const r = new FileReader();
+        r.onload = ev => {
+            try {
+                const importedState = JSON.parse(ev.target.result);
+                if ('setup' in importedState && 'quest' in importedState) {
+                    state = importedState;
+                    save();
+                    render();
+                } else { alert("Archivo de datos inválido."); }
+            } catch { alert("No se pudo leer el archivo."); }
+        };
+        r.readAsText(f);
+    };
+    inp.click();
+}
+
+function resetApp() {
+    if (confirm("Esto borrará todo tu progreso. ¿Seguro que quieres empezar una nueva misión?")) {
+        localStorage.removeItem("questApp");
+        location.reload();
+    }
+}
+
+function shiftDay(v) { debugOffset += v; render(); }
+function forceQuest(q) {
+    if (q === 2 && state.quest === 1) {
+        switchToQuest2();
+    } else {
+        state.quest = q; save(); render();
+    }
+}
+
+/* === INITIALIZATION === */
+render();
+
+</script>
+</body>
+</html>
