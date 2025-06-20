@@ -39,3 +39,4 @@ All notable changes to this project will be documented below.
 - Introduce a Material 3 Expressive theme with updated colors, fonts, and button styles.
 
 ### [Unreleased]
+- Add "El Primer Paso" manual access from the Oracle icon and Modify Mission menu.
