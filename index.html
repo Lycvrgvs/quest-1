@@ -522,7 +522,7 @@ function topBar() {
         <button class="icon-btn" onclick="openModifyQuestModal()" title="${t('modify_quest')}"><i class="ph-bold ph-gear-six"></i></button>
         <button class="icon-btn" onclick="exportData()" title="${t('export')}"><i class="ph-bold ph-download-simple"></i></button>
         <button class="icon-btn" onclick="importData()" title="${t('import')}"><i class="ph-bold ph-upload-simple"></i></button>
-        <button class="icon-btn" onclick="openQuestManual()" title="${t('manual')}"><i class="ph-bold ph-scroll"></i></button>
+        <button class="icon-btn" onclick="openOracleMenu()" title="${t('manual')}"><i class="ph-bold ph-scroll"></i></button>
         <button class="icon-btn" onclick="resetApp()" title="${t('reset')}"><i class="ph-bold ph-fire"></i></button>
     </div>`;
     return bar;
@@ -654,6 +654,15 @@ function openHelp(i) {
 }
 
 function openSetupManual(auto) { showManual(manuals.setup.es, auto); }
+
+function openOracleMenu() {
+    modal(`<h3>Oráculo</h3>
+           <button style="width:100%;" onclick="closeModal(); openSetupManual(false)">El Primer Paso</button>
+           <button style="width:100%; margin-top:0.5em;" onclick="closeModal(); showManual(manuals.quest1.es, false)">Misión 1</button>
+           <button style="width:100%; margin-top:0.5em;" onclick="closeModal(); showManual(manuals.quest2.es, false)">Misión 2</button>
+           <button class="secondary" style="width:100%; margin-top:0.5em;" onclick="closeModal()">${t('close')}</button>`);
+}
+
 function openQuestManual(auto = false) {
     const content = state.quest === 1 ? manuals.quest1.es : manuals.quest2.es;
     showManual(content, auto);
@@ -705,6 +714,7 @@ function openModifyQuestModal() {
              <button style="flex:1;" onclick="saveModifiedQuest()">${t('save_changes')}</button>
              ${quest2Button}
            </div>
+           <button style="width:100%; margin-top:0.5em;" onclick="openSetupFromModify()">El Primer Paso</button>
            <button class="secondary" style="width:100%;" onclick="closeModal()">${t('close')}</button>`);
 }
 
@@ -714,6 +724,11 @@ function saveModifiedQuest() {
     save();
     closeModal();
     render();
+}
+
+function openSetupFromModify() {
+    closeModal();
+    openSetupManual(false);
 }
 
 function switchToQuest2() {
